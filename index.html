@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f4f7" />
+    <title>Mac 键盘状态检测器</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow" data-i18n="eyebrow">MAC KEYBOARD CHECKER</p>
+          <h1 id="page-title" data-i18n="title">Mac 键盘状态检测器</h1>
+          <p class="intro" data-i18n="intro">点击下方区域后按键，实时查看按键是否被网页正确识别。</p>
+        </div>
+        <div class="hero-actions">
+          <button id="theme-toggle" class="button theme-toggle" type="button" aria-label="切换主题">◐</button>
+          <button id="language-toggle" class="button language-toggle" type="button" aria-label="Switch to English">English</button>
+          <div id="focus-status" class="focus-status" data-active="false">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span data-i18n="waiting">等待输入</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel tester-panel" aria-label="键盘测试区域" data-i18n-attr="aria-label:testerLabel">
+        <div id="keyboard-focus" class="keyboard-focus" tabindex="0" role="application" aria-label="键盘输入测试区域" data-i18n-attr="aria-label:focusLabel">
+          <div class="keyboard-head">
+            <div class="focus-copy">
+              <span class="focus-icon" aria-hidden="true">⌨</span>
+              <div>
+                <strong data-i18n="pressHere">在这里按下键盘</strong>
+                <p data-i18n="pressHint">支持普通按键、组合键和 Mac 修饰键</p>
+              </div>
+            </div>
+            <kbd class="last-key" id="last-key">—</kbd>
+          </div>
+          <p class="shortcut-hint" data-i18n="shortcutHint">测试区获得焦点时，会拦截浏览器允许屏蔽的按键功能与快捷键；点击区域外恢复。系统级快捷键无法屏蔽。</p>
+          <div class="model-picker">
+            <label for="keyboard-model" data-i18n="modelPickerLabel">键盘类型</label>
+            <select id="keyboard-model" aria-label="键盘型号选择" data-i18n-attr="aria-label:modelPickerLabel">
+              <option value="compact-usb">Magic Keyboard USB‑C</option>
+              <option value="numeric-classic">Magic Keyboard with Numeric Keypad</option>
+              <option value="macbook-pro">MacBook Pro · M2 及之后机型</option>
+              <option value="macbook-air">MacBook Air · M2 及之后机型</option>
+              <option value="macbook-neo">MacBook Neo · A18 及之后机型</option>
+              <option value="pc-104">标准104美式键盘 英语-美国</option>
+              <option value="laptop-pc">常见笔记本电脑键盘（带独立数字区）</option>
+            </select>
+            <label id="fn-swap-option" class="fn-swap-option" hidden>
+              <input id="swap-fn-ctrl" type="checkbox" />
+              <span data-i18n="swapFnCtrl">交换 Fn 与 Ctrl</span>
+            </label>
+          </div>
+          <div id="keyboard-layout" class="virtual-keyboard" aria-label="Mac 键盘布局" data-i18n-attr="aria-label:keyboardLayoutLabel"></div>
+        </div>
+
+        <div class="modifier-grid" aria-label="修饰键状态" data-i18n-attr="aria-label:modifierLabel">
+          <article class="modifier-card" data-code="MetaLeft" data-modifier="meta">
+            <div class="modifier-symbol">⌘</div>
+            <div class="modifier-label" data-i18n="command">Command</div>
+            <div class="modifier-key">⌘ Command</div>
+            <span class="state-pill" data-i18n="notPressed">未按下</span>
+          </article>
+          <article class="modifier-card" data-code="AltLeft" data-modifier="alt">
+            <div class="modifier-symbol">⌥</div>
+            <div class="modifier-label" data-i18n="option">Option</div>
+            <div class="modifier-key">⌥ Option</div>
+            <span class="state-pill" data-i18n="notPressed">未按下</span>
+          </article>
+          <article class="modifier-card" data-code="ControlLeft" data-modifier="ctrl">
+            <div class="modifier-symbol">⌃</div>
+            <div class="modifier-label" data-i18n="control">Control</div>
+            <div class="modifier-key">⌃ Control</div>
+            <span class="state-pill" data-i18n="notPressed">未按下</span>
+          </article>
+          <article class="modifier-card" data-code="ShiftLeft" data-modifier="shift">
+            <div class="modifier-symbol">⇧</div>
+            <div class="modifier-label" data-i18n="shift">Shift</div>
+            <div class="modifier-key">⇧ Shift</div>
+            <span class="state-pill" data-i18n="notPressed">未按下</span>
+          </article>
+          <article class="modifier-card" data-code="CapsLock" data-modifier="caps">
+            <div class="modifier-symbol">⇪</div>
+            <div class="modifier-label" data-i18n="capsLock">Caps Lock</div>
+            <div class="modifier-key">⇪ Caps Lock</div>
+            <span class="state-pill" data-i18n="notEnabled">未开启</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="lower-grid">
+        <section class="panel event-panel" aria-labelledby="event-title">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker" data-i18n="liveEvent">LIVE EVENT</p>
+              <h2 id="event-title" data-i18n="latestInput">最近一次输入</h2>
+            </div>
+            <button id="clear-events" class="button button-quiet" type="button" data-i18n="clear">清空记录</button>
+          </div>
+          <div class="event-summary">
+            <div>
+              <span class="summary-label" data-i18n="key">按键</span>
+              <strong id="event-key">—</strong>
+            </div>
+            <div>
+              <span class="summary-label" data-i18n="code">代码</span>
+              <strong id="event-code">—</strong>
+            </div>
+            <div>
+              <span class="summary-label" data-i18n="type">类型</span>
+              <strong id="event-type" data-i18n="waiting">等待输入</strong>
+            </div>
+          </div>
+          <ol id="event-log" class="event-log" aria-live="polite">
+            <li class="empty-log" data-i18n="emptyLog">按键事件会显示在这里</li>
+          </ol>
+        </section>
+
+        <aside class="panel info-panel" aria-labelledby="info-title">
+          <p class="section-kicker" data-i18n="macNotes">MAC NOTES</p>
+          <h2 id="info-title" data-i18n="usage">使用说明</h2>
+          <ul class="notes-list">
+            <li><span>⌘</span><p data-i18n="noteCommand">Command 会被浏览器识别为 <code>Meta</code>。</p></li>
+            <li><span>⌥</span><p data-i18n="noteOption">Option 对应 <code>Alt</code>，可与其他按键组成组合键。</p></li>
+            <li><span>⇪</span><p data-i18n="noteCaps">Caps Lock 松开后仍保持“开启”状态，再按一次即可关闭。</p></li>
+          </ul>
+          <p class="privacy-note" data-i18n="privacy">所有检测只在当前页面完成，不会上传按键信息。</p>
+        </aside>
+      </section>
+
+      <footer class="footer-note" data-i18n="footer">提示：切换到其他应用或浏览器标签页后，网页无法读取系统级键盘状态。</footer>
+    </main>
+    <script src="./script.js"></script>
+  </body>
+</html>
