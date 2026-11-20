@@ -70,7 +70,9 @@
   }
 
   function visualCode(event) {
-    return ['Power', 'KeyboardLock', 'Lock'].includes(event.code) || ['Power', 'KeyboardLock', 'Lock'].includes(event.key) ? 'Power' : event.code;
+    if (['Power', 'KeyboardLock', 'Lock'].includes(event.code) || ['Power', 'KeyboardLock', 'Lock'].includes(event.key)) return 'Power';
+    if (event.code === 'Fn' || event.key === 'Fn') return 'Fn';
+    return event.code;
   }
 
   const letterRows = [
@@ -372,6 +374,8 @@
         if (pcNavTop[code]) label = pcNavTop[code];
         const pcLabels = { Fn: ['fn'], Tab: ['Tab'], CapsLock: ['Caps Lock'], Enter: ['Enter'], Backspace: ['Backspace'], ControlLeft: ['Ctrl'], AltLeft: ['Alt'], MetaLeft: ['Win'], MetaRight: ['Win'], AltRight: ['Alt'], ControlRight: ['Ctrl'] };
         if (pcLabels[code]) [label, sub] = pcLabels[code];
+        if (code === 'Digit4') [label, sub] = ['4', '$'];
+        if (code === 'Digit6') [label, sub] = ['6', '^'];
         if (laptopPc && code === 'MetaRight') label = 'PrtSc';
         if (code === 'NumpadEnter') label = 'Enter';
       }
@@ -381,13 +385,21 @@
         key.classList.add('laptop-keypad-backspace');
         key.innerHTML = 'Back<br>space';
       }
-      key.setAttribute('aria-label', spot.code);
+      // Shared geometry is independent of the code sent by the actual key.
+      if (pc) {
+        const eventCodes = laptopPc
+          ? { F13: 'Home', F14: 'End', F15: 'Insert', F16: 'Delete', MetaRight: 'PrintScreen' }
+          : { F13: 'PrintScreen', F14: 'ScrollLock', F15: 'Pause' };
+        key.dataset.code = eventCodes[code] || code;
+      }
+      key.setAttribute('aria-label', key.dataset.code);
       frame.append(key);
     });
     return frame;
   }
 
   function renderKeyboardLayout(layout = selectedLayout) {
+    resetPressedKeys();
     selectedLayout = layout;
     modelSelect.value = layout;
     const compact = layout.startsWith('compact') || layout.startsWith('macbook-');
@@ -485,6 +497,7 @@
     const card = modifierCards.find((item) => item.dataset.code === code || item.dataset.modifier === modifierAliases[code]);
     if (!card) return;
     const isCaps = card.dataset.modifier === 'caps';
+    if (!isCaps) isDown = [...pressedKeys.keys()].some((pressedCode) => modifierAliases[pressedCode] === card.dataset.modifier);
     const isOn = isCaps && capsLockOn;
     card.classList.toggle('is-down', isDown);
     card.classList.toggle('is-on', isOn);
